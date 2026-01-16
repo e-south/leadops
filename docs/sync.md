@@ -12,7 +12,9 @@ Leadops is local-first: SQLite is canonical and Airtable is a mirror.
 - `crm sync pull --apply` applies non-conflicting changes to SQLite.
 - `crm sync pull --accept-remote <ExternalId>` resolves one conflict in favor of Airtable.
 - Pull ignores Airtable rows without `ExternalId` by default.
-- Incremental pull uses `AirtableModifiedAt` when available; `crm mirror bootstrap airtable` can add it.
+- Incremental pull uses `AirtableModifiedAt` when available; otherwise it scans the full table.
+- If `AirtableModifiedAt` is present, conflicts are only raised when *both* local and remote changed
+  since the last mirror. Local-only changes are skipped.
 
 ## Safety
 - Airtable edits are never auto-applied; you must run pull explicitly.
@@ -20,7 +22,7 @@ Leadops is local-first: SQLite is canonical and Airtable is a mirror.
 - `crm mirror bootstrap airtable` can create missing tables/fields when allowed.
 
 ## Environment
-- `AIRTABLE_API_KEY` must be set when using sync/validation.
+- `AIRTABLE_API_KEY` must be set to your Airtable PAT (use `scripts/setup-airtable-pat.sh` or export it).
 
 ## FAQ
 - Do I need to manually populate Airtable records? **No.** Use `crm sync push` to mirror local data.

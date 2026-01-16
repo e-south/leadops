@@ -6,7 +6,7 @@ from uuid import uuid4
 from crm.domain import rules
 from crm.domain.stages import TouchChannel, TouchDirection
 from crm.services.utils import utc_now_iso
-from crm.store.sqlite import SqliteStore
+from crm.store.sqlite import SqliteSession, SqliteStore
 
 
 class TouchError(RuntimeError):
@@ -56,18 +56,27 @@ def log_touch(
             ),
         )
 
-        due_value = due.isoformat() if due else None
         if target.get("opp_id"):
-            session.execute(
-                "UPDATE sponsor_opps SET last_touch_at = ?, last_touch_channel = ?, next_action = ?, "
-                "next_action_due = ?, updated_at = ? WHERE opp_id = ?",
-                (now, channel, next_action, due_value, now, target["opp_id"]),
+            _update_next_action(
+                session,
+                table="sponsor_opps",
+                id_field="opp_id",
+                record_id=target["opp_id"],
+                channel=channel,
+                now=now,
+                next_action=next_action,
+                due=due,
             )
         if target.get("member_id"):
-            session.execute(
-                "UPDATE campaign_members SET last_touch_at = ?, last_touch_channel = ?, next_action = ?, "
-                "next_action_due = ?, updated_at = ? WHERE member_id = ?",
-                (now, channel, next_action, due_value, now, target["member_id"]),
+            _update_next_action(
+                session,
+                table="campaign_members",
+                id_field="member_id",
+                record_id=target["member_id"],
+                channel=channel,
+                now=now,
+                next_action=next_action,
+                due=due,
             )
 
     return touch_id
@@ -96,3 +105,27 @@ def _resolve_target(store: SqliteStore, record_id: str) -> dict[str, str] | None
             "org_id": None,
         }
     return None
+
+
+def _update_next_action(
+    session: SqliteSession,
+    *,
+    table: str,
+    id_field: str,
+    record_id: str,
+    channel: str,
+    now: str,
+    next_action: str | None,
+    due: date | None,
+) -> None:
+    updates = ["last_touch_at = ?", "last_touch_channel = ?", "updated_at = ?"]
+    params: list[object] = [now, channel, now]
+    if next_action is not None:
+        updates.append("next_action = ?")
+        params.append(next_action)
+    if due is not None:
+        updates.append("next_action_due = ?")
+        params.append(due.isoformat())
+    params.append(record_id)
+    query = f"UPDATE {table} SET {', '.join(updates)} WHERE {id_field} = ?"
+    session.execute(query, params)

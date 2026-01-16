@@ -56,7 +56,7 @@ pixi run crm lead next
 ### 5) (Optional) Bootstrap Airtable mirror
 
 ```bash
-export AIRTABLE_API_KEY="your_pat_here"
+export AIRTABLE_API_KEY="patXXXXXXXX"
 pixi run crm mirror bootstrap airtable --dry-run
 pixi run crm mirror bootstrap airtable --apply --write-workspace-ids
 pixi run crm sync push
@@ -80,6 +80,7 @@ pixi run crm sync pull --apply
 ## Notes
 - `crm` is available via `pixi run crm ...` or `uv run crm ...`.
 - Airtable is a mirror only; the local SQLite database is canonical.
-- Never store secrets in files; use environment variables.
+- Never commit secrets; load `AIRTABLE_API_KEY` (Airtable PAT) via env or `scripts/setup-airtable-pat.sh`.
 - Workspace sync state lives in `workspaces/<name>/.sync_state.json` (gitignored).
 - Sanitized events are stored in `workspaces/<name>/events.ndjson` (gitignored).
+- `scripts/setup-airtable-pat.sh` stores the PAT in `.env` (gitignored) and enables direnv.

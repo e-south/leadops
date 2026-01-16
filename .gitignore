@@ -7,6 +7,7 @@ __pycache__/
 *.db
 .env
 .env.*
+.envrc
 workspaces/*/.env
 workspaces/**/local.sqlite
 workspaces/**/local.sqlite-*

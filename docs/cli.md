@@ -15,7 +15,7 @@ All commands are exposed via `crm` (e.g., `pixi run crm ...`).
 ## Mirror
 - `crm mirror doctor airtable`
 - `crm mirror bootstrap airtable --dry-run`
-- `crm mirror bootstrap airtable --apply --write-workspace-ids`
+- `crm mirror bootstrap airtable --apply --write-workspace-ids` (writes table IDs in apply mode)
 
 ## Leads
 - `crm lead add sponsor ...`
@@ -24,6 +24,7 @@ All commands are exposed via `crm` (e.g., `pixi run crm ...`).
 - `crm lead list --pipeline attendee --status invited`
 - `crm lead next`
 - `crm lead touch <id> --channel email --direction outbound --next "Follow up" --due 2026-01-27`
+  - Omitting `--next`/`--due` preserves existing values.
 
 ## Sync
 - `crm sync push` (validates Airtable schema by default; use `--no-validate` to skip)

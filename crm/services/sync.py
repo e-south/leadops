@@ -25,7 +25,10 @@ def _require_airtable_config(mirror: MirrorConfig) -> None:
 def _require_api_key() -> str:
     api_key = os.getenv("AIRTABLE_API_KEY")
     if not api_key:
-        raise SyncError("AIRTABLE_API_KEY is not set.")
+        raise SyncError(
+            "AIRTABLE_API_KEY (Airtable PAT) is not set. "
+            "Run scripts/setup-airtable-pat.sh or export it in your shell."
+        )
     return api_key
 
 

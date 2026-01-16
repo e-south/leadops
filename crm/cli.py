@@ -23,6 +23,7 @@ from crm.config import (
 )
 from crm.domain import rules
 from crm.domain.rules import ValidationError
+from crm.domain.stages import CampaignMemberStatus, SponsorStage
 from crm.services import exports, leads, mirror, pull_service, sync, touch
 from crm.services.events import EventLogger
 from crm.services.mirror import MirrorAuthError, MirrorServiceError
@@ -176,12 +177,20 @@ def mirror_bootstrap(
     except MirrorServiceError as exc:
         _exit_with_error(str(exc))
 
-    if write_workspace_ids and result.discovered_table_ids:
-        backup_path = update_workspace_table_ids(ws.path / "workspace.yaml", result.discovered_table_ids)
-        result.actions.append(f"UPDATED workspace.yaml (backup: {backup_path.name})")
+    actions = list(result.actions)
+    if write_workspace_ids:
+        if not apply:
+            actions.append(
+                "SKIP: workspace.yaml not updated (use --apply with --write-workspace-ids)."
+            )
+        elif result.discovered_table_ids:
+            backup_path = update_workspace_table_ids(
+                ws.path / "workspace.yaml", result.discovered_table_ids
+            )
+            actions.append(f"UPDATED workspace.yaml (backup: {backup_path.name})")
 
     payload = {
-        "actions": result.actions,
+        "actions": actions,
         "discovered_table_ids": result.discovered_table_ids,
         "missing_modified_time": result.missing_modified_time,
         "applied": apply,
@@ -191,7 +200,7 @@ def mirror_bootstrap(
     else:
         if not apply:
             typer.echo("DRY RUN: no Airtable changes were made.")
-        for action in result.actions or ["No changes required."]:
+        for action in actions or ["No changes required."]:
             typer.echo(action)
         if result.missing_modified_time:
             typer.echo(
@@ -284,6 +293,11 @@ def lead_list(
     store = SqliteStore(ws.store.sqlite_path)
 
     if pipeline == "sponsor":
+        if stage:
+            try:
+                rules.validate_enum(stage, [s.value for s in SponsorStage], "stage")
+            except ValidationError as exc:
+                _exit_with_error(str(exc))
         rows = leads.list_sponsor_leads(store, stage)
         for row in rows:
             typer.echo(
@@ -292,6 +306,11 @@ def lead_list(
         return
 
     if pipeline == "attendee":
+        if status:
+            try:
+                rules.validate_enum(status, [s.value for s in CampaignMemberStatus], "status")
+            except ValidationError as exc:
+                _exit_with_error(str(exc))
         rows = leads.list_attendee_leads(store, status)
         for row in rows:
             typer.echo(
@@ -450,7 +469,10 @@ def open_airtable(
     if not record_id:
         api_key = os.getenv("AIRTABLE_API_KEY")
         if not api_key:
-            _exit_with_error("AIRTABLE_API_KEY is not set.")
+            _exit_with_error(
+                "AIRTABLE_API_KEY (Airtable PAT) is not set. "
+                "Run scripts/setup-airtable-pat.sh or export it in your shell."
+            )
         client = AirtableClient(api_key=api_key, base_id=ws.mirror.base_id or "")
         for candidate_table, table_id in ws.mirror.tables.items():
             if not table_id:

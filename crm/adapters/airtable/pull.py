@@ -64,17 +64,18 @@ def pull_records(
             raise PullError(f"Table {table_name} mapping must map a field to ExternalId.")
 
         schema_fields = (schema.tables.get(table_name) or {}).get("fields", {})
+        table_meta = tables_meta.get(table_id) if tables_meta else None
+        has_modified_field = bool(table_meta and _has_modified_field(table_meta))
         query_fields = [fields_map[field] for field in fields_map] + [
             "ExternalId",
             "MirrorVersion",
             "MirrorUpdatedAt",
-            MODIFIED_FIELD,
         ]
+        if has_modified_field:
+            query_fields.append(MODIFIED_FIELD)
         filter_formula = None
-        if last_pull_at and last_pull_at.get(table_name):
-            table_meta = tables_meta.get(table_id) if tables_meta else None
-            if table_meta and _has_modified_field(table_meta):
-                filter_formula = _modified_since_formula(last_pull_at[table_name])
+        if last_pull_at and last_pull_at.get(table_name) and has_modified_field:
+            filter_formula = _modified_since_formula(last_pull_at[table_name])
         records = client.list_records(table_id, fields=query_fields, filter_formula=filter_formula)
 
         with store.session() as session:
@@ -102,6 +103,7 @@ def pull_records(
                     local_row=local_dict,
                     mirror_state=mirror_dict,
                     changed_fields=changed_fields,
+                    remote_modified_at=remote_fields.get(MODIFIED_FIELD),
                 )
                 if decision.action == "skip":
                     summary.skipped += 1

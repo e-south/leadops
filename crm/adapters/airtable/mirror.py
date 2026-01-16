@@ -426,6 +426,8 @@ def _table_create_fields(expectation: TableExpectation) -> list[dict[str, Any]]:
     payload: list[dict[str, Any]] = []
     for field_name in ordered_fields:
         spec = expectation.fields[field_name]
+        if spec.field_type == "lastModifiedTime":
+            continue
         payload.append(_field_payload(spec))
     return payload
 
