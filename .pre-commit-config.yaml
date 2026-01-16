@@ -41,12 +41,16 @@ repos:
           - >-
             (?x)^(
               \.secrets\.baseline$|
+              \.env$|
+              \.env\..*|
+              \.envrc$|
               \.venv/|
               \.pixi/|
               \.cruncher/|
               \.tmp/|
               dist/|
               build/|
+              .*\.egg-info/|
               src/dnadesign/archived/|
               src/dnadesign/prototypes/|
               src/dnadesign/usr/archived/|
@@ -60,12 +64,16 @@ repos:
         exclude: >-
           (?x)^(
             \.secrets\.baseline$|
+            \.env$|
+            \.env\..*|
+            \.envrc$|
             \.venv/|
             \.pixi/|
             \.cruncher/|
             \.tmp/|
             dist/|
             build/|
+            .*\.egg-info/|
             src/dnadesign/archived/|
             src/dnadesign/prototypes/|
             src/dnadesign/usr/archived/|
