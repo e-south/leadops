@@ -1,0 +1,103 @@
+mirror_fields:
+  ExternalId: { type: text }
+  MirrorVersion: { type: number }
+  MirrorUpdatedAt: { type: datetime }
+
+tables:
+  organizations:
+    fields:
+      org_id: ExternalId
+      name: Name
+      domain: Domain
+      org_type: Org Type
+      tags: Tags
+      notes: Notes
+      created_at: Created At
+      updated_at: Updated At
+
+  people:
+    fields:
+      person_id: ExternalId
+      org_id: Organization Id
+      full_name: Full Name
+      email: Email
+      title: Title
+      linkedin_url: LinkedIn
+      tags: Tags
+      notes: Notes
+      created_at: Created At
+      updated_at: Updated At
+
+  sponsor_opps:
+    fields:
+      opp_id: ExternalId
+      org_id: Organization Id
+      primary_person_id: Primary Person Id
+      stage: Stage
+      expected_value_usd: Expected Value
+      tier: Tier
+      probability: Probability
+      next_action: Next Action
+      next_action_due: Next Action Due
+      last_touch_at: Last Touch At
+      last_touch_channel: Last Touch Channel
+      notes: Notes
+      created_at: Created At
+      updated_at: Updated At
+
+  campaigns:
+    fields:
+      campaign_id: ExternalId
+      name: Name
+      kind: Kind
+      start_date: Start Date
+      end_date: End Date
+      notes: Notes
+      created_at: Created At
+      updated_at: Updated At
+
+  campaign_members:
+    fields:
+      member_id: ExternalId
+      campaign_id: Campaign Id
+      person_id: Person Id
+      status: Status
+      segment: Segment
+      next_action: Next Action
+      next_action_due: Next Action Due
+      last_touch_at: Last Touch At
+      last_touch_channel: Last Touch Channel
+      notes: Notes
+      created_at: Created At
+      updated_at: Updated At
+
+  touches:
+    fields:
+      touch_id: ExternalId
+      occurred_at: Occurred At
+      channel: Channel
+      direction: Direction
+      subject: Subject
+      body_snippet: Body Snippet
+      org_id: Organization Id
+      person_id: Person Id
+      opp_id: Sponsor Opp Id
+      member_id: Campaign Member Id
+      external_ref: External Ref
+      notes: Notes
+      created_at: Created At
+      updated_at: Updated At
+
+  tasks:
+    fields:
+      task_id: ExternalId
+      due_at: Due At
+      status: Status
+      title: Title
+      details: Details
+      opp_id: Sponsor Opp Id
+      member_id: Campaign Member Id
+      person_id: Person Id
+      org_id: Organization Id
+      created_at: Created At
+      updated_at: Updated At

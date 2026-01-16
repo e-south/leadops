@@ -1,0 +1,15 @@
+workspace: synbiogrs27
+store:
+  sqlite_path: ./local.sqlite
+
+mirror:
+  provider: airtable
+  base_id: appXXXXXXXXXXXXXX
+  tables:
+    organizations: tblXXXXXXXXXXXXXX
+    people: tblYYYYYYYYYYYYYY
+    sponsor_opps: tblZZZZZZZZZZZZZZ
+    campaigns: tblAAAAAAAAAAAAAA
+    campaign_members: tblBBBBBBBBBBBB
+    touches: tblCCCCCCCCCCCCCC
+    tasks: tblDDDDDDDDDDDDDD

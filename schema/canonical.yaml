@@ -1,0 +1,155 @@
+version: 1
+
+enums:
+  org_type: [academia, biotech, biopharma, vc, nonprofit, other]
+  sponsor_stage:
+    [targeted, contact_found, contacted, engaged, call_scheduled, proposal_sent, negotiation, committed, invoicing, paid, closed_lost]
+  sponsor_tier: [platinum, gold, silver, other]
+  campaign_kind: [attendee_outreach, speaker_outreach, other]
+  campaign_member_status:
+    [identified, invited, interested, registered, attending, declined, unresponsive]
+  touch_channel: [email, call, meeting, linkedin, other]
+  touch_direction: [outbound, inbound]
+  task_status: [open, done, canceled]
+
+
+tables:
+  organizations:
+    primary_key: org_id
+    fields:
+      org_id: { type: uuid, required: true }
+      name: { type: text, required: true }
+      domain: { type: text }
+      org_type: { type: enum, enum: org_type }
+      tags: { type: text }
+      notes: { type: text }
+      created_at: { type: datetime, required: true }
+      updated_at: { type: datetime, required: true }
+    indexes:
+      - [name]
+      - [domain]
+
+  people:
+    primary_key: person_id
+    fields:
+      person_id: { type: uuid, required: true }
+      org_id: { type: uuid, ref: organizations.org_id }
+      full_name: { type: text, required: true }
+      email: { type: text }
+      title: { type: text }
+      linkedin_url: { type: text }
+      tags: { type: text }
+      notes: { type: text }
+      created_at: { type: datetime, required: true }
+      updated_at: { type: datetime, required: true }
+    indexes:
+      - [email]
+      - [org_id]
+
+  sponsor_opps:
+    primary_key: opp_id
+    fields:
+      opp_id: { type: uuid, required: true }
+      org_id: { type: uuid, ref: organizations.org_id, required: true }
+      primary_person_id: { type: uuid, ref: people.person_id }
+      stage: { type: enum, enum: sponsor_stage, required: true }
+      expected_value_usd: { type: number }
+      tier: { type: enum, enum: sponsor_tier }
+      probability: { type: number }
+      next_action: { type: text }
+      next_action_due: { type: date }
+      last_touch_at: { type: datetime }
+      last_touch_channel: { type: enum, enum: touch_channel }
+      notes: { type: text }
+      created_at: { type: datetime, required: true }
+      updated_at: { type: datetime, required: true }
+    indexes:
+      - [stage]
+      - [next_action_due]
+      - [org_id]
+
+  campaigns:
+    primary_key: campaign_id
+    fields:
+      campaign_id: { type: uuid, required: true }
+      name: { type: text, required: true }
+      kind: { type: enum, enum: campaign_kind, required: true }
+      start_date: { type: date }
+      end_date: { type: date }
+      notes: { type: text }
+      created_at: { type: datetime, required: true }
+      updated_at: { type: datetime, required: true }
+    indexes:
+      - [name]
+
+  campaign_members:
+    primary_key: member_id
+    fields:
+      member_id: { type: uuid, required: true }
+      campaign_id: { type: uuid, ref: campaigns.campaign_id, required: true }
+      person_id: { type: uuid, ref: people.person_id, required: true }
+      status: { type: enum, enum: campaign_member_status, required: true }
+      segment: { type: text }
+      next_action: { type: text }
+      next_action_due: { type: date }
+      last_touch_at: { type: datetime }
+      last_touch_channel: { type: enum, enum: touch_channel }
+      notes: { type: text }
+      created_at: { type: datetime, required: true }
+      updated_at: { type: datetime, required: true }
+    indexes:
+      - [status]
+      - [next_action_due]
+      - [campaign_id]
+
+  touches:
+    primary_key: touch_id
+    fields:
+      touch_id: { type: uuid, required: true }
+      occurred_at: { type: datetime, required: true }
+      channel: { type: enum, enum: touch_channel, required: true }
+      direction: { type: enum, enum: touch_direction, required: true }
+      subject: { type: text }
+      body_snippet: { type: text }
+      org_id: { type: uuid, ref: organizations.org_id }
+      person_id: { type: uuid, ref: people.person_id }
+      opp_id: { type: uuid, ref: sponsor_opps.opp_id }
+      member_id: { type: uuid, ref: campaign_members.member_id }
+      external_ref: { type: text }
+      notes: { type: text }
+      created_at: { type: datetime, required: true }
+      updated_at: { type: datetime, required: true }
+    indexes:
+      - [occurred_at]
+      - [org_id]
+      - [person_id]
+
+  tasks:
+    primary_key: task_id
+    fields:
+      task_id: { type: uuid, required: true }
+      due_at: { type: datetime }
+      status: { type: enum, enum: task_status, required: true }
+      title: { type: text, required: true }
+      details: { type: text }
+      opp_id: { type: uuid, ref: sponsor_opps.opp_id }
+      member_id: { type: uuid, ref: campaign_members.member_id }
+      person_id: { type: uuid, ref: people.person_id }
+      org_id: { type: uuid, ref: organizations.org_id }
+      created_at: { type: datetime, required: true }
+      updated_at: { type: datetime, required: true }
+    indexes:
+      - [status]
+      - [due_at]
+
+  mirror_state:
+    primary_key: [table_name, external_id]
+    fields:
+      table_name: { type: text, required: true }
+      external_id: { type: text, required: true }
+      record_id: { type: text }
+      mirror_version: { type: number }
+      mirror_updated_at: { type: datetime }
+    indexes:
+      - [table_name]
+      - [record_id]
