@@ -203,6 +203,20 @@ base in Airtable UI (name it `synbioGRS27`), then copy the base ID (`app...`).
 pixi run crm workspace add synbiogrs27 --base appXXXXXXXXXXXXXX --use --force
 ```
 
+#### 0.5) Add AirtableModifiedAt fields (manual, one-time)
+
+Airtable does **not** allow creating `lastModifiedTime` fields via the API, so you must add them in the UI:
+
+1) For each table, add a field named **AirtableModifiedAt**
+2) Type: **Last modified time**
+3) (Optional) Restrict which fields are tracked to exclude mirror metadata
+
+Then run:
+
+```bash
+pixi run crm mirror bootstrap airtable --apply
+```
+
 #### 1) Initialize leadops and select the workspace
 
 ```bash
