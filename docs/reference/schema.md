@@ -1,12 +1,12 @@
 # Schema as Code
 
-The canonical schema lives in `schema/canonical.yaml`. It defines:
+The canonical schema lives in `resources/schema/canonical.yaml`. It defines:
 - Tables and fields
 - Enums
 - Required fields
 - Foreign keys and indexes
 
-The Airtable mirror mapping lives in `schema/airtable.mapping.yaml`. It maps domain fields to Airtable field names and includes mirror metadata fields (`ExternalId`, `MirrorVersion`, `MirrorUpdatedAt`). The mirror also expects an `AirtableModifiedAt` field (last modified time) for incremental pull.
+The Airtable mirror mapping lives in `resources/schema/airtable.mapping.yaml`. It maps domain fields to Airtable field names and includes mirror metadata fields (`ExternalId`, `MirrorVersion`, `MirrorUpdatedAt`). The mirror also expects an `AirtableModifiedAt` field (last modified time) for incremental pull.
 
 ## Conventions
 - UUID primary keys are stored as TEXT in SQLite.

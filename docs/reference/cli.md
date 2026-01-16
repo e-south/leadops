@@ -32,5 +32,11 @@ All commands are exposed via `crm` (e.g., `pixi run crm ...`).
 - `crm sync pull --apply`
 - `crm sync pull --accept-remote <ExternalId>`
 
+## Export
+- `crm export excel --out exports/synbiogrs27-leads.xlsx`
+
+## Snapshot
+- `crm snapshot`
+
 ## Open
 - `crm open airtable <ExternalId> [--open]`

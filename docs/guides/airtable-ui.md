@@ -4,9 +4,9 @@ Airtable is a UI surface for the local-first system. Keep workflows in the CLI a
 
 ## Recommended views
 - **Kanban by Stage** for SponsorOpps and CampaignMembers (group by `Stage` / `Status`).
-- **Calendar by Next Action Due** using `next_action_due`.
-- **Follow-ups due**: filter `next_action_due` is within the next 7 days.
-- **Stale**: filter `last_touch_at` is older than 14 days and `stage` is not `closed_lost`.
+- **Calendar by Next Action Due** using `Next Action Due`.
+- **Follow-ups due**: filter `Next Action Due` is within the next 7 days.
+- **Stale**: filter `Last Touch At` is older than 14 days and `Stage` is not `closed_lost`.
 
 ## Principles
 - No Airtable formulas that define business meaning.

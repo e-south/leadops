@@ -50,8 +50,8 @@ app.add_typer(export_app, name="export")
 app.add_typer(mirror_app, name="mirror")
 app.add_typer(open_app, name="open")
 
-SCHEMA_PATH = Path("schema/canonical.yaml")
-MAPPING_PATH = Path("schema/airtable.mapping.yaml")
+SCHEMA_PATH = Path("resources/schema/canonical.yaml")
+MAPPING_PATH = Path("resources/schema/airtable.mapping.yaml")
 
 
 @app.callback()

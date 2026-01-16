@@ -11,7 +11,13 @@ Leadops can **create tables and fields**, but it **cannot create a base** via th
 pixi run crm workspace add synbiogrs27 --base appXXXXXXXXXXXXXX --use --force
 ```
 
-## 0.5) Add AirtableModifiedAt fields (manual, one-time)
+## 0.5) Bootstrap Airtable tables + fields
+
+```bash
+pixi run crm mirror bootstrap airtable --apply
+```
+
+## 0.6) Add AirtableModifiedAt fields (manual, one-time)
 
 Airtable does **not** allow creating `lastModifiedTime` fields via the API, so you must add them in the UI:
 
@@ -19,10 +25,10 @@ Airtable does **not** allow creating `lastModifiedTime` fields via the API, so y
 2) Type: **Last modified time**
 3) (Optional) Restrict which fields are tracked to exclude mirror metadata
 
-Then run:
+Re-run the doctor to confirm:
 
 ```bash
-pixi run crm mirror bootstrap airtable --apply
+pixi run crm mirror doctor airtable
 ```
 
 ## 1) Initialize leadops and select the workspace

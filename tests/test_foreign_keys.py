@@ -8,7 +8,9 @@ from crm.store.sqlite import SqliteStore
 
 def test_foreign_keys_enforced(tmp_path: Path) -> None:
     store = SqliteStore(tmp_path / "test.sqlite")
-    schema_path = Path(__file__).resolve().parents[1] / "schema" / "canonical.yaml"
+    schema_path = (
+        Path(__file__).resolve().parents[1] / "resources" / "schema" / "canonical.yaml"
+    )
     store.apply_schema(schema_path)
 
     with pytest.raises(sqlite3.IntegrityError):

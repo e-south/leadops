@@ -83,29 +83,38 @@ leadops/
   AGENTS.md
   README.md
 
-  schema/
-    canonical.yaml                 # your domain schema + enums + pipelines
-    airtable.mapping.yaml          # mapping rules (domain -> Airtable field types/names)
+  resources/
+    schema/
+      canonical.yaml               # your domain schema + enums + pipelines
+      airtable.mapping.yaml        # mapping rules (domain -> Airtable field types/names)
+    templates/
+      email/
+        sponsor_intro.md
+        sponsor_followup.md
+        attendee_invite.md
+      snippets/
+        talking_points_biopharma.md
 
-  crm/
-    __init__.py
-    cli.py                         # Typer/Click entrypoint (crm ...)
-    domain/
-      models.py
-      stages.py
-      rules.py                     # invariants + validation
-    store/
-      sqlite.py
-      migrations.py
-    adapters/
-      airtable/
-        client.py                  # REST client (or pyairtable)
-        mirror.py                  # push/pull logic
-        ids.py                     # resolve base/table/field IDs
-    services/
-      leads.py                     # lead add/list/next
-      touch.py                     # logging interactions
-      exports.py                   # excel/csv exports
+  src/
+    crm/
+      __init__.py
+      cli.py                       # Typer/Click entrypoint (crm ...)
+      domain/
+        models.py
+        stages.py
+        rules.py                   # invariants + validation
+      store/
+        sqlite.py
+        migrations.py
+      adapters/
+        airtable/
+          client.py                # REST client (or pyairtable)
+          mirror.py                # push/pull logic
+          ids.py                   # resolve base/table/field IDs
+      services/
+        leads.py                   # lead add/list/next
+        touch.py                   # logging interactions
+        exports.py                 # excel/csv exports
 
   workspaces/
     synbiogrs27/
@@ -113,14 +122,6 @@ leadops/
       .env.example
     another-project/
       workspace.yaml
-
-  templates/
-    email/
-      sponsor_intro.md
-      sponsor_followup.md
-      attendee_invite.md
-    snippets/
-      talking_points_biopharma.md
 
   data/
     .gitkeep                        # optional
@@ -328,7 +329,7 @@ You can derive tasks from “next_action”, but a tasks table lets you add stan
 
 ## 5) Schema-as-code: the YAML spec
 
-You store the canonical truth in `schema/canonical.yaml`, then generate:
+You store the canonical truth in `resources/schema/canonical.yaml`, then generate:
 
 * local SQLite migrations
 * Airtable base schema creation/upgrades
@@ -418,7 +419,7 @@ Put an `AGENTS.md` at repo root that says (in effect):
 * “Local DB is canonical. Airtable is mirror.”
 * “Prefer `crm …` commands; do not directly mutate Airtable via MCP unless asked.”
 * “Never write secrets into files.”
-* “When making schema changes, edit `schema/canonical.yaml` then run `crm schema apply`.”
+* “When making schema changes, edit `resources/schema/canonical.yaml` then run `crm schema apply`.”
 * “Always run tests.”
 
 ### Keep the Airtable MCP server as your “inspection & emergency wrench”
@@ -528,7 +529,7 @@ To keep it minimal, the very first “walking demo” can be:
 
 And from there, you iterate—without ever becoming dependent on Airtable UI logic.
 
-If you share **nothing sensitive**, just the Airtable table names you want (or even “use defaults”), I can lock the initial `schema/canonical.yaml` to the exact tables above and write the “verbs contract” so your workflows stay stable as you evolve.
+If you share **nothing sensitive**, just the Airtable table names you want (or even “use defaults”), I can lock the initial `resources/schema/canonical.yaml` to the exact tables above and write the “verbs contract” so your workflows stay stable as you evolve.
 
 [1]: https://github.com/domdomegg/airtable-mcp-server "https://github.com/domdomegg/airtable-mcp-server"
 [2]: https://developers.openai.com/codex/mcp/ "https://developers.openai.com/codex/mcp/"

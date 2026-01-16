@@ -11,6 +11,22 @@ dependencies = [
   "openpyxl>=3.1.2",
 ]
 
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.4.4",
+  "ruff>=0.6.9",
+  "pre-commit>=3.7.1",
+  "build>=1.2.2",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=7.4.4",
+  "ruff>=0.6.9",
+  "pre-commit>=3.7.1",
+  "build>=1.2.2",
+]
+
 [project.scripts]
 crm = "crm.cli:app"
 
@@ -18,10 +34,13 @@ crm = "crm.cli:app"
 requires = ["setuptools>=68.2.2", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+package-dir = {"" = "src"}
+
 [tool.setuptools.packages.find]
-where = ["."]
+where = ["src"]
 include = ["crm*"]
-exclude = ["data*", "exports*", "schema*", "workspaces*", "templates*", "docs*", "tests*", "scripts*"]
+exclude = ["data*", "exports*", "resources*", "workspaces*", "docs*", "tests*", "scripts*"]
 
 [tool.ruff]
 line-length = 100
@@ -39,3 +58,4 @@ indent-style = "space"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+pythonpath = ["src"]

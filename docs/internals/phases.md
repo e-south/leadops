@@ -10,7 +10,7 @@ This is the internal delivery tracker for leadops. Each phase lists goals, concr
 - SynbioGRS27 can be run end-to-end from the CLI.
 
 **Deliverables**
-- [ ] `schema/canonical.yaml` + `schema/airtable.mapping.yaml` (versioned schema-as-code)
+- [ ] `resources/schema/canonical.yaml` + `resources/schema/airtable.mapping.yaml` (versioned schema-as-code)
 - [ ] SQLite migrations and `crm schema apply`
 - [ ] Airtable schema validation via `crm schema apply --mirror airtable`
 - [ ] Workspace scaffolding (`workspaces/synbiogrs27/workspace.yaml` + `.env.example`)
