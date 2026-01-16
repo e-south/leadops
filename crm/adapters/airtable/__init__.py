@@ -1,1 +1,1 @@
-__all__ = ["client", "mirror"]
+__all__ = ["client", "mirror", "pull", "schema"]

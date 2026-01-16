@@ -15,7 +15,9 @@ class AirtableRecord:
 
 
 class AirtableError(RuntimeError):
-    pass
+    def __init__(self, message: str, status_code: int | None = None) -> None:
+        super().__init__(message)
+        self.status_code = status_code
 
 
 class AirtableClient:
@@ -29,6 +31,39 @@ class AirtableClient:
     def list_tables(self) -> list[dict[str, Any]]:
         data = self._request("GET", f"/v0/meta/bases/{self.base_id}/tables")
         return data.get("tables", [])
+
+    def create_table(self, name: str, fields: list[dict[str, Any]]) -> dict[str, Any]:
+        payload = {"name": name, "fields": fields}
+        return self._request("POST", f"/v0/meta/bases/{self.base_id}/tables", json=payload)
+
+    def create_field(
+        self,
+        table_id: str,
+        name: str,
+        field_type: str,
+        options: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        payload: dict[str, Any] = {"name": name, "type": field_type}
+        if options:
+            payload["options"] = options
+        return self._request(
+            "POST", f"/v0/meta/bases/{self.base_id}/tables/{table_id}/fields", json=payload
+        )
+
+    def update_field(
+        self,
+        table_id: str,
+        field_id: str,
+        options: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        payload: dict[str, Any] = {}
+        if options:
+            payload["options"] = options
+        return self._request(
+            "PATCH",
+            f"/v0/meta/bases/{self.base_id}/tables/{table_id}/fields/{field_id}",
+            json=payload,
+        )
 
     def list_records(
         self,
@@ -76,9 +111,14 @@ class AirtableClient:
             raise AirtableError("Multiple Airtable records found for ExternalId.")
         return records[0]
 
-    def _request(self, method: str, path: str, params: dict[str, Any] | None = None, json: Any | None = None):
+    def _request(
+        self, method: str, path: str, params: dict[str, Any] | None = None, json: Any | None = None
+    ):
         url = f"{BASE_URL}{path}"
         response = self.session.request(method, url, params=params, json=json, timeout=30)
         if response.status_code >= 400:
-            raise AirtableError(f"Airtable error {response.status_code}: {response.text}")
+            raise AirtableError(
+                f"Airtable error {response.status_code}: {response.text}",
+                status_code=response.status_code,
+            )
         return response.json()

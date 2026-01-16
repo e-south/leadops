@@ -1,23 +1,32 @@
 from __future__ import annotations
 
+import json
+import os
 import shutil
+from dataclasses import asdict
 from pathlib import Path
+from typing import Annotated
 
 import typer
 
 from crm import __version__
+from crm.adapters.airtable.client import AirtableClient
 from crm.adapters.airtable.mirror import MirrorError
 from crm.config import (
     WorkspaceError,
     ensure_workspaces_dir,
     load_workspace,
     set_current_workspace,
+    update_workspace_table_ids,
     workspace_config_path,
     write_workspace_config,
 )
 from crm.domain import rules
 from crm.domain.rules import ValidationError
-from crm.services import exports, leads, sync, touch
+from crm.services import exports, leads, mirror, pull_service, sync, touch
+from crm.services.events import EventLogger
+from crm.services.mirror import MirrorAuthError, MirrorServiceError
+from crm.services.pull_service import PullServiceError
 from crm.services.sync import SyncError
 from crm.services.touch import TouchError
 from crm.services.utils import today_iso
@@ -29,12 +38,16 @@ lead_app = typer.Typer(help="Lead operations")
 schema_app = typer.Typer(help="Schema operations")
 sync_app = typer.Typer(help="Mirror sync")
 export_app = typer.Typer(help="Exports")
+mirror_app = typer.Typer(help="Mirror diagnostics and bootstrap")
+open_app = typer.Typer(help="Open records in external systems")
 
 app.add_typer(workspace_app, name="workspace")
 app.add_typer(lead_app, name="lead")
 app.add_typer(schema_app, name="schema")
 app.add_typer(sync_app, name="sync")
 app.add_typer(export_app, name="export")
+app.add_typer(mirror_app, name="mirror")
+app.add_typer(open_app, name="open")
 
 SCHEMA_PATH = Path("schema/canonical.yaml")
 MAPPING_PATH = Path("schema/airtable.mapping.yaml")
@@ -102,6 +115,91 @@ def schema_apply(mirror: str | None = typer.Option(None, "--mirror")) -> None:
         except (MirrorError, SyncError) as exc:
             _exit_with_error(str(exc))
 
+
+@mirror_app.command("doctor")
+def mirror_doctor(
+    provider: str = typer.Argument(..., help="airtable"),
+    include_modified_time: bool = typer.Option(
+        True, "--modified-time/--no-modified-time", help="Check AirtableModifiedAt fields."
+    ),
+    json_output: bool = typer.Option(False, "--json", help="Emit JSON output."),
+) -> None:
+    """Check Airtable mirror schema and configuration."""
+    if provider != "airtable":
+        raise typer.BadParameter("Only the airtable provider is supported.")
+    ws = _load_workspace()
+    try:
+        result = mirror.doctor_airtable(ws, MAPPING_PATH, SCHEMA_PATH, include_modified_time)
+    except MirrorAuthError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    except MirrorServiceError as exc:
+        _exit_with_error(str(exc))
+    payload = {
+        "exit_code": result.exit_code,
+        "messages": result.messages,
+        "diff": asdict(result.diff),
+    }
+    if json_output:
+        typer.echo(json.dumps(payload, indent=2))
+    else:
+        for message in result.messages:
+            typer.echo(message)
+    raise typer.Exit(code=result.exit_code)
+
+
+@mirror_app.command("bootstrap")
+def mirror_bootstrap(
+    provider: str = typer.Argument(..., help="airtable"),
+    apply: bool = typer.Option(
+        False, "--apply/--dry-run", help="Apply changes to Airtable schema."
+    ),
+    write_workspace_ids: bool = typer.Option(
+        False, "--write-workspace-ids", help="Write discovered table IDs to workspace.yaml."
+    ),
+    include_modified_time: bool = typer.Option(
+        True, "--modified-time/--no-modified-time", help="Ensure AirtableModifiedAt fields exist."
+    ),
+    json_output: bool = typer.Option(False, "--json", help="Emit JSON output."),
+) -> None:
+    """Create missing Airtable tables/fields for the mirror."""
+    if provider != "airtable":
+        raise typer.BadParameter("Only the airtable provider is supported.")
+    ws = _load_workspace()
+    try:
+        result = mirror.bootstrap_airtable(
+            ws, MAPPING_PATH, SCHEMA_PATH, apply=apply, include_modified_time=include_modified_time
+        )
+    except MirrorAuthError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    except MirrorServiceError as exc:
+        _exit_with_error(str(exc))
+
+    if write_workspace_ids and result.discovered_table_ids:
+        backup_path = update_workspace_table_ids(ws.path / "workspace.yaml", result.discovered_table_ids)
+        result.actions.append(f"UPDATED workspace.yaml (backup: {backup_path.name})")
+
+    payload = {
+        "actions": result.actions,
+        "discovered_table_ids": result.discovered_table_ids,
+        "missing_modified_time": result.missing_modified_time,
+        "applied": apply,
+    }
+    if json_output:
+        typer.echo(json.dumps(payload, indent=2))
+    else:
+        if not apply:
+            typer.echo("DRY RUN: no Airtable changes were made.")
+        for action in result.actions or ["No changes required."]:
+            typer.echo(action)
+        if result.missing_modified_time:
+            typer.echo(
+                "Missing AirtableModifiedAt fields: "
+                + ", ".join(sorted(result.missing_modified_time))
+            )
+    if apply:
+        typer.echo("Bootstrap complete.")
 
 @lead_app.command("add")
 def lead_add(
@@ -251,17 +349,70 @@ def lead_touch(
 def sync_push(
     validate: bool = typer.Option(
         True, "--validate/--no-validate", help="Validate Airtable schema before push."
-    )
+    ),
+    events: bool = typer.Option(
+        True, "--events/--no-events", help="Write sanitized events to the workspace log."
+    ),
 ) -> None:
+    """Mirror local records to Airtable (no manual Airtable data entry required)."""
     ws = _load_workspace()
     store = SqliteStore(ws.store.sqlite_path)
     if ws.mirror is None:
         raise typer.BadParameter("Workspace mirror config is missing.")
     try:
-        sync.push(store, ws.mirror, MAPPING_PATH, validate=validate)
+        logger = _event_logger(ws, enabled=events)
+        sync.push(store, ws.mirror, MAPPING_PATH, validate=validate, logger=logger)
+        pull_service.record_push(ws.path)
         typer.echo("Sync push complete.")
     except (MirrorError, SyncError) as exc:
         _exit_with_error(str(exc))
+
+
+@sync_app.command("pull")
+def sync_pull(
+    apply: bool = typer.Option(
+        False, "--apply/--dry-run", help="Apply Airtable changes to local SQLite."
+    ),
+    accept_remote: Annotated[
+        list[str] | None,
+        typer.Option("--accept-remote", help="Accept remote changes for a specific ExternalId."),
+    ] = None,
+    json_output: bool = typer.Option(False, "--json", help="Emit JSON output."),
+    events: bool = typer.Option(
+        True, "--events/--no-events", help="Write sanitized events to the workspace log."
+    ),
+) -> None:
+    """Pull Airtable edits back into SQLite with conflict detection."""
+    ws = _load_workspace()
+    store = SqliteStore(ws.store.sqlite_path)
+    if ws.mirror is None:
+        raise typer.BadParameter("Workspace mirror config is missing.")
+    try:
+        logger = _event_logger(ws, enabled=events)
+        summary, changes = pull_service.pull(
+            store,
+            ws.mirror,
+            MAPPING_PATH,
+            SCHEMA_PATH,
+            ws.path,
+            apply=apply,
+            accept_remote=set(accept_remote or []),
+            logger=logger,
+        )
+    except PullServiceError as exc:
+        _exit_with_error(str(exc))
+    if json_output:
+        payload = {
+            "summary": summary.__dict__,
+            "changes": [change.__dict__ for change in changes],
+            "applied": apply,
+        }
+        typer.echo(json.dumps(payload, indent=2))
+    else:
+        for line in pull_service.format_pull_report(summary, changes):
+            typer.echo(line)
+    if summary.conflicts:
+        raise typer.Exit(code=1)
 
 
 @export_app.command("excel")
@@ -270,6 +421,59 @@ def export_excel(out: str = typer.Option(..., "--out")) -> None:
     store = SqliteStore(ws.store.sqlite_path)
     exports.export_excel(store, Path(out))
     typer.echo(f"Exported Excel to {out}")
+
+
+@open_app.command("airtable")
+def open_airtable(
+    external_id: str = typer.Argument(..., help="ExternalId / UUID"),
+    open_browser: bool = typer.Option(False, "--open", help="Open the record in a browser."),
+) -> None:
+    ws = _load_workspace()
+    if ws.mirror is None:
+        raise typer.BadParameter("Workspace mirror config is missing.")
+    if ws.mirror.provider != "airtable":
+        raise typer.BadParameter("Only the airtable provider is supported.")
+    store = SqliteStore(ws.store.sqlite_path)
+
+    records = store.fetch_all(
+        "SELECT table_name, record_id FROM mirror_state WHERE external_id = ?",
+        (external_id,),
+    )
+    record_id = None
+    table_name = None
+    if len(records) > 1:
+        _exit_with_error("Multiple mirror records found for this ExternalId.")
+    if records:
+        record_id = records[0]["record_id"]
+        table_name = records[0]["table_name"]
+
+    if not record_id:
+        api_key = os.getenv("AIRTABLE_API_KEY")
+        if not api_key:
+            _exit_with_error("AIRTABLE_API_KEY is not set.")
+        client = AirtableClient(api_key=api_key, base_id=ws.mirror.base_id or "")
+        for candidate_table, table_id in ws.mirror.tables.items():
+            if not table_id:
+                continue
+            found = client.find_record_by_external_id(table_id, external_id)
+            if found:
+                record_id = found.record_id
+                table_name = candidate_table
+                store.upsert_mirror_state(candidate_table, external_id, record_id, 0, None)
+                break
+
+    if not record_id or not table_name:
+        _exit_with_error("Record not found in Airtable mirror.")
+
+    table_id = ws.mirror.tables.get(table_name)
+    if not table_id:
+        _exit_with_error(f"Missing table id for {table_name} in workspace config.")
+    url = f"https://airtable.com/{ws.mirror.base_id}/{table_id}/{record_id}"
+    typer.echo(url)
+    if open_browser:
+        import webbrowser
+
+        webbrowser.open(url)
 
 
 @app.command("snapshot")
@@ -295,6 +499,10 @@ def _load_workspace():
 def _exit_with_error(message: str) -> None:
     typer.echo(f"Error: {message}", err=True)
     raise typer.Exit(code=1)
+
+
+def _event_logger(ws, enabled: bool) -> EventLogger:
+    return EventLogger(path=ws.path / "events.ndjson", workspace=ws.name, enabled=enabled)
 
 
 if __name__ == "__main__":

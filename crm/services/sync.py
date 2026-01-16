@@ -6,6 +6,8 @@ from pathlib import Path
 from crm.adapters.airtable.client import AirtableClient
 from crm.adapters.airtable.mirror import load_mapping, push_all, validate_schema
 from crm.config import MirrorConfig
+from crm.services.events import EventLogger
+from crm.store.migrations import load_schema
 from crm.store.sqlite import SqliteStore
 
 
@@ -28,15 +30,20 @@ def _require_api_key() -> str:
 
 
 def push(
-    store: SqliteStore, mirror: MirrorConfig, mapping_path: Path, validate: bool = True
+    store: SqliteStore,
+    mirror: MirrorConfig,
+    mapping_path: Path,
+    validate: bool = True,
+    logger: EventLogger | None = None,
 ) -> None:
     _require_airtable_config(mirror)
     api_key = _require_api_key()
     client = AirtableClient(api_key=api_key, base_id=mirror.base_id or "")
     mapping = load_mapping(mapping_path)
     if validate:
-        validate_schema(client, mapping, mirror.tables)
-    push_all(store, client, mapping, mirror.tables)
+        schema = load_schema(Path("schema/canonical.yaml"))
+        validate_schema(client, mapping, schema, mirror.tables)
+    push_all(store, client, mapping, mirror.tables, logger=logger)
 
 
 def validate_mirror(store: SqliteStore, mirror: MirrorConfig, mapping_path: Path) -> None:
@@ -44,4 +51,5 @@ def validate_mirror(store: SqliteStore, mirror: MirrorConfig, mapping_path: Path
     api_key = _require_api_key()
     client = AirtableClient(api_key=api_key, base_id=mirror.base_id or "")
     mapping = load_mapping(mapping_path)
-    validate_schema(client, mapping, mirror.tables)
+    schema = load_schema(Path("schema/canonical.yaml"))
+    validate_schema(client, mapping, schema, mirror.tables)

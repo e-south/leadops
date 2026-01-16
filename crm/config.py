@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -95,6 +96,28 @@ def write_workspace_config(name: str, base_id: str | None) -> Path:
     config_path = workspace_config_path(name)
     config_path.write_text(yaml.safe_dump(config, sort_keys=False), encoding="utf-8")
     return config_path
+
+
+def update_workspace_table_ids(config_path: Path, table_ids: dict[str, str]) -> Path:
+    if not config_path.exists():
+        raise WorkspaceError(f"Workspace config not found: {config_path}")
+    payload = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+    mirror = payload.get("mirror") or {}
+    tables = mirror.get("tables") or {}
+    if not isinstance(tables, dict):
+        raise WorkspaceError("Workspace mirror.tables must be a mapping.")
+
+    for key, value in table_ids.items():
+        if value:
+            tables[key] = value
+    mirror["tables"] = tables
+    payload["mirror"] = mirror
+
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    backup_path = config_path.with_suffix(f".bak.{timestamp}")
+    backup_path.write_text(config_path.read_text(encoding="utf-8"), encoding="utf-8")
+    config_path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+    return backup_path
 
 
 def _parse_store(store_data: Any, config_path: Path) -> StoreConfig:

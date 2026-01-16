@@ -183,7 +183,7 @@ The repo includes a ready-to-edit scaffold:
 - `workspaces/synbiogrs27/workspace.yaml`
 - `workspaces/synbiogrs27/.env.example`
 
-Update the Airtable IDs in `workspace.yaml`, then load your PAT via environment variables (never commit it).
+Update the Airtable IDs in `workspace.yaml` (or run `crm mirror bootstrap airtable --apply --write-workspace-ids`), then load your PAT via environment variables (never commit it).
 `store.sqlite_path` is resolved relative to the workspace directory.
 
 ---
@@ -206,7 +206,7 @@ pixi run crm workspace add synbiogrs27 --base appXXXXXXXXXXXXXX
 pixi run crm workspace use synbiogrs27
 ```
 
-Edit `workspaces/synbiogrs27/workspace.yaml` to fill in all Airtable table IDs.
+Edit `workspaces/synbiogrs27/workspace.yaml` to fill in all Airtable table IDs, or run the bootstrap command to populate them.
 
 #### 2) Apply schema locally (and optionally validate Airtable)
 
@@ -481,10 +481,10 @@ These are the commands I’d standardize on. They’re intentionally “small su
   * Validates Airtable schema, then upserts local → Airtable using `ExternalId` as the key
   * Updates `MirrorVersion` and `MirrorUpdatedAt`
   * Use `--no-validate` to skip schema validation
-* `crm sync pull --dry-run` (planned in Phase 2)
+* `crm sync pull --dry-run`
 
   * Detects Airtable edits and prints diffs (no silent overwrites)
-* `crm sync pull --accept-remote` (planned in Phase 2)
+* `crm sync pull --accept-remote`
 
   * Explicitly accepts remote edits (rare; assertive programming)
 
@@ -558,15 +558,14 @@ Airtable provides ways to find IDs (base/table/field/record IDs from URLs and to
 
 ## 9) Implementation plan (minimal complexity, staged)
 
-### Phase 1 (fast win): local DB + CLI + push-only mirror
+### Phase 1 (fast win): local DB + CLI + mirror bootstrap + push
 
 Deliver:
 
 * `crm init`, `crm lead add/list/next/touch`, `crm sync push`
-* Airtable schema validation (fields/tables) driven from YAML; creation planned
+* `crm mirror doctor airtable` for schema diagnostics
+* `crm mirror bootstrap airtable` to create missing tables/fields
 * snapshots + Excel export
-
-No pull/conflict logic yet; treat Airtable as “display-only.”
 
 ### Phase 2: safe pull + conflict detection
 
@@ -574,6 +573,7 @@ Deliver:
 
 * mirror metadata fields (`ExternalId`, `MirrorVersion`, `MirrorUpdatedAt`)
 * `crm sync pull --dry-run` that shows diffs
+* `crm sync pull --apply` for non-conflicting changes
 * `--accept-remote` for explicit merges
 
 ### Phase 3: decouple from Airtable (adapter interface)

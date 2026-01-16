@@ -12,6 +12,11 @@ All commands are exposed via `crm` (e.g., `pixi run crm ...`).
 - `crm schema apply`
 - `crm schema apply --mirror airtable`
 
+## Mirror
+- `crm mirror doctor airtable`
+- `crm mirror bootstrap airtable --dry-run`
+- `crm mirror bootstrap airtable --apply --write-workspace-ids`
+
 ## Leads
 - `crm lead add sponsor ...`
 - `crm lead add attendee ...`
@@ -22,3 +27,9 @@ All commands are exposed via `crm` (e.g., `pixi run crm ...`).
 
 ## Sync
 - `crm sync push` (validates Airtable schema by default; use `--no-validate` to skip)
+- `crm sync pull --dry-run`
+- `crm sync pull --apply`
+- `crm sync pull --accept-remote <ExternalId>`
+
+## Open
+- `crm open airtable <ExternalId> [--open]`

@@ -25,8 +25,11 @@ mirror:
 ## Commands
 - `crm workspace add <name> --base app...` creates a workspace folder and config.
 - `crm workspace use <name>` marks it as active.
+- `crm mirror bootstrap airtable --apply --write-workspace-ids` can populate table IDs.
 
 ## Notes
 - The local DB is per-workspace.
 - `store.sqlite_path` is resolved relative to the workspace directory.
 - Airtable is optional; if unset, sync commands will fail fast.
+- `workspaces/<name>/.sync_state.json` stores local sync state (gitignored).
+- `workspaces/<name>/events.ndjson` stores sanitized events (gitignored).

@@ -10,10 +10,11 @@ Leadops follows a Ports & Adapters approach with a “thin waist”:
 ## Design principles
 - **Decoupled**: domain logic never references Airtable.
 - **Assertive**: validate inputs early; fail fast on invalid state.
-- **Robust**: sync is explicit and observable (push-only in v0.1).
+- **Robust**: sync is explicit and observable (push + safe pull).
 - **Extensible**: adapters and services are narrow interfaces to swap later.
 
 ## Data flow
 1. CLI calls services.
 2. Services operate on domain objects and the local store.
 3. The mirror adapter pushes local records into Airtable, using `ExternalId` for idempotent upserts.
+4. Optional pull reconciles Airtable edits back into SQLite with conflict detection.
