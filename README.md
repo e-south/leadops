@@ -79,6 +79,13 @@ pixi run crm sync pull --apply
 - [CLI Reference](docs/reference/cli.md)
 - [Schema as Code](docs/reference/schema.md)
 
+## Development workflow
+
+```bash
+uv sync --dev
+uv run pre-commit install
+```
+
 ## Notes
 - `crm` is available via `pixi run crm ...` or `uv run crm ...`.
 - Airtable is a mirror only; the local SQLite database is canonical.

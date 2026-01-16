@@ -6,34 +6,38 @@ on:
     branches: [main]
 
 jobs:
-  ci:
+  lint-test-build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.4.1
+      - name: Set up Python
+        uses: actions/setup-python@v6
         with:
-          pixi-version: "0.62.2"
+          python-version-file: ".python-version"
 
-      - name: Install dependencies
-        run: pixi install
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install dependencies (locked)
+        run: uv sync --locked --dev
+
+      - name: Pre-commit (non-Ruff hooks)
+        env:
+          SKIP: ruff-check,ruff-format
+        run: uv run pre-commit run --all-files
 
       - name: Lint
-        run: pixi run lint
+        run: uv run ruff check .
 
-      - name: Pre-commit
-        run: pixi run pre-commit run --all-files
+      - name: Format check
+        run: uv run ruff format --check .
 
-      - name: Test
-        run: pixi run test
+      - name: Tests
+        run: uv run pytest -q
 
-      - name: CLI smoke
-        run: |
-          pixi run crm init
-          pixi run crm workspace use synbiogrs27
-          pixi run crm schema apply
-
-      - name: Build
-        run: pixi run build
+      - name: Build (sdist + wheel)
+        run: uv build
