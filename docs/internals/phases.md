@@ -16,7 +16,7 @@ This is the internal delivery tracker for leadops. Each phase lists goals, concr
 - [ ] Workspace scaffolding (`workspaces/synbiogrs27/workspace.yaml` + `.env.example`)
 - [ ] CLI commands: `init`, `workspace add/use`, `schema apply`, `lead add/list/next/touch`, `export excel`, `snapshot`, `sync push`
 - [ ] Push-only Airtable adapter with `ExternalId` upsert and mirror metadata
-- [ ] User docs: `README.md`, `docs/spec.md`, `docs/cli.md`, `docs/sync.md`
+- [ ] User docs: `README.md`, `docs/internals/spec.md`, `docs/reference/cli.md`, `docs/guides/sync.md`
 
 **Validation (synbioGRS27 demo)**
 - [ ] `pixi run crm init` creates `data/` and `exports/`
@@ -48,7 +48,7 @@ This is the internal delivery tracker for leadops. Each phase lists goals, concr
 - [ ] Mirror metadata fields verified across tables
 - [ ] `crm sync pull --dry-run` shows diffs only
 - [ ] `crm sync pull --accept-remote` applies explicit merges
-- [ ] Conflict policy documented in `docs/sync.md`
+- [ ] Conflict policy documented in `docs/guides/sync.md`
 
 **Validation**
 - [ ] Edit a record in Airtable and confirm `--dry-run` reports the diff

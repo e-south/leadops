@@ -70,12 +70,13 @@ pixi run crm sync pull --apply
 ```
 
 ## Documentation
-- [Architecture](docs/architecture.md)
-- [Schema as Code](docs/schema.md)
-- [Workspaces](docs/workspaces.md)
-- [CLI Reference](docs/cli.md)
-- [Sync Model](docs/sync.md)
-- [Airtable UI Tips](docs/airtable-ui.md)
+- [Docs index](docs/index.md)
+- [Architecture](docs/concepts/architecture.md)
+- [Workspaces](docs/guides/workspaces.md)
+- [Sync Model](docs/guides/sync.md)
+- [Airtable UI Tips](docs/guides/airtable-ui.md)
+- [CLI Reference](docs/reference/cli.md)
+- [Schema as Code](docs/reference/schema.md)
 
 ## Notes
 - `crm` is available via `pixi run crm ...` or `uv run crm ...`.
