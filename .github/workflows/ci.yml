@@ -6,7 +6,7 @@ on:
     branches: [main]
 
 jobs:
-  lint-test-build:
+  ci:
     runs-on: ubuntu-latest
 
     steps:
