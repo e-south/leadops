@@ -23,6 +23,9 @@ jobs:
       - name: Lint
         run: pixi run lint
 
+      - name: Pre-commit
+        run: pixi run pre-commit run --all-files
+
       - name: Test
         run: pixi run test
 

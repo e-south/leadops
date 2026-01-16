@@ -72,6 +72,7 @@ pixi run crm sync pull --apply
 ## Documentation
 - [Docs index](docs/index.md)
 - [Architecture](docs/concepts/architecture.md)
+- [Demo: SynbioGRS27 Walkthrough](docs/guides/demo.md)
 - [Workspaces](docs/guides/workspaces.md)
 - [Sync Model](docs/guides/sync.md)
 - [Airtable UI Tips](docs/guides/airtable-ui.md)

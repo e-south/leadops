@@ -6,6 +6,7 @@ Start here for a concise map of the Leadops documentation. The docs are grouped 
 - [Architecture](concepts/architecture.md)
 
 ## Guides
+- [Demo: SynbioGRS27 Walkthrough](guides/demo.md)
 - [Workspaces](guides/workspaces.md)
 - [Sync Model](guides/sync.md)
 - [Airtable UI Tips](guides/airtable-ui.md)
