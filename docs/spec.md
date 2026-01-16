@@ -193,6 +193,16 @@ Update the Airtable IDs in `workspace.yaml` (or run `crm mirror bootstrap airtab
 This walkthrough uses **synbioGRS27** as the representative project and is a didactic tour of the CLI.
 Commands are shown with `pixi run`, but `uv run` works the same way.
 
+#### 0) Create the Airtable base (manual, one-time)
+
+Leadops can **create tables and fields**, but it **cannot create a base** via the API. Create an empty
+base in Airtable UI (name it `synbioGRS27`), then copy the base ID (`app...`).
+
+```bash
+# If you need to set/overwrite the base ID in your workspace:
+pixi run crm workspace add synbiogrs27 --base appXXXXXXXXXXXXXX --use --force
+```
+
 #### 1) Initialize leadops and select the workspace
 
 ```bash

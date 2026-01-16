@@ -14,6 +14,18 @@ from crm.store.sqlite import SqliteStore
 MIRROR_FIELD_NAMES = {"ExternalId", "MirrorVersion", "MirrorUpdatedAt"}
 MODIFIED_TIME_FIELD = "AirtableModifiedAt"
 LONG_TEXT_FIELDS = {"notes", "details", "body_snippet"}
+DATE_OPTIONS = {"dateFormat": {"name": "iso"}}
+DATETIME_OPTIONS = {
+    "dateFormat": {"name": "iso"},
+    "timeFormat": {"name": "24hour"},
+    "timeZone": "utc",
+}
+NUMBER_OPTIONS = {"precision": 0}
+DEFAULT_FIELD_OPTIONS = {
+    "date": DATE_OPTIONS,
+    "dateTime": DATETIME_OPTIONS,
+    "number": NUMBER_OPTIONS,
+}
 
 TYPE_MAP = {
     "uuid": "singleLineText",
@@ -269,16 +281,16 @@ def bootstrap_schema(
         for field_name, spec in expectation.fields.items():
             if field_name in existing_fields:
                 continue
+            if spec.field_type == "lastModifiedTime":
+                continue
             actions.append(f"ADD FIELD: {expectation.display_name} -> {field_name} ({spec.field_type})")
             if apply:
                 client.create_field(table_id, field_name, spec.field_type, spec.options)
 
         if include_modified_time and MODIFIED_TIME_FIELD not in existing_fields:
             actions.append(
-                f"ADD FIELD: {expectation.display_name} -> {MODIFIED_TIME_FIELD} (lastModifiedTime)"
+                f"MANUAL: create {expectation.display_name} -> {MODIFIED_TIME_FIELD} (lastModifiedTime)"
             )
-            if apply:
-                client.create_field(table_id, MODIFIED_TIME_FIELD, "lastModifiedTime", None)
 
     return actions, discovered_table_ids
 
@@ -434,8 +446,9 @@ def _table_create_fields(expectation: TableExpectation) -> list[dict[str, Any]]:
 
 def _field_payload(spec: FieldExpectation) -> dict[str, Any]:
     payload: dict[str, Any] = {"name": spec.name, "type": spec.field_type}
-    if spec.options:
-        payload["options"] = spec.options
+    options = spec.options or DEFAULT_FIELD_OPTIONS.get(spec.field_type)
+    if options:
+        payload["options"] = dict(options)
     return payload
 
 

@@ -14,6 +14,7 @@ workspaces/**/local.sqlite-*
 workspaces/.current
 workspaces/**/.sync_state.json
 workspaces/**/events.ndjson
+workspaces/**/*.bak.*
 *.egg-info/
 dist/
 build/

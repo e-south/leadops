@@ -45,7 +45,7 @@ def push(
     mapping = load_mapping(mapping_path)
     if validate:
         schema = load_schema(Path("schema/canonical.yaml"))
-        validate_schema(client, mapping, schema, mirror.tables)
+        validate_schema(client, mapping, schema, mirror.tables, include_modified_time=False)
     push_all(store, client, mapping, mirror.tables, logger=logger)
 
 
@@ -55,4 +55,4 @@ def validate_mirror(store: SqliteStore, mirror: MirrorConfig, mapping_path: Path
     client = AirtableClient(api_key=api_key, base_id=mirror.base_id or "")
     mapping = load_mapping(mapping_path)
     schema = load_schema(Path("schema/canonical.yaml"))
-    validate_schema(client, mapping, schema, mirror.tables)
+    validate_schema(client, mapping, schema, mirror.tables, include_modified_time=False)

@@ -6,6 +6,7 @@ Leadops is local-first: SQLite is canonical and Airtable is a mirror.
 - `crm sync push` validates Airtable schema, then upserts local records using `ExternalId`.
 - Mirror metadata fields (`MirrorVersion`, `MirrorUpdatedAt`) are written on push.
   - Use `crm sync push --no-validate` to skip schema validation.
+- Schema validation for push ignores `AirtableModifiedAt` (use `crm mirror doctor airtable` to check it).
 
 ## Safe pull (v0.1)
 - `crm sync pull --dry-run` prints diffs and conflicts without touching local data.
@@ -20,6 +21,7 @@ Leadops is local-first: SQLite is canonical and Airtable is a mirror.
 - Airtable edits are never auto-applied; you must run pull explicitly.
 - `crm mirror doctor airtable` checks schema mismatches and modified-time configuration.
 - `crm mirror bootstrap airtable` can create missing tables/fields when allowed.
+  - AirtableModifiedAt must be created manually (Airtable does not allow creating lastModifiedTime via API).
 
 ## Environment
 - `AIRTABLE_API_KEY` must be set to your Airtable PAT (use `scripts/setup-airtable-pat.sh` or export it).
