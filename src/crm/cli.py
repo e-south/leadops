@@ -55,7 +55,9 @@ MAPPING_PATH = Path("resources/schema/airtable.mapping.yaml")
 
 
 @app.callback()
-def version_callback(version: bool = typer.Option(False, "--version", help="Show version and exit.")):
+def version_callback(
+    version: bool = typer.Option(False, "--version", help="Show version and exit."),
+):
     if version:
         typer.echo(__version__)
         raise typer.Exit()
@@ -209,6 +211,7 @@ def mirror_bootstrap(
             )
     if apply:
         typer.echo("Bootstrap complete.")
+
 
 @lead_app.command("add")
 def lead_add(

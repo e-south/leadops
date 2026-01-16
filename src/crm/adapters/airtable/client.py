@@ -84,7 +84,9 @@ class AirtableClient:
                 params["offset"] = offset
             data = self._request("GET", f"/v0/{self.base_id}/{table_id}", params=params)
             for record in data.get("records", []):
-                records.append(AirtableRecord(record_id=record["id"], fields=record.get("fields", {})))
+                records.append(
+                    AirtableRecord(record_id=record["id"], fields=record.get("fields", {}))
+                )
             offset = data.get("offset")
             if not offset:
                 break
@@ -94,7 +96,9 @@ class AirtableClient:
         data = self._request("POST", f"/v0/{self.base_id}/{table_id}", json={"fields": fields})
         return AirtableRecord(record_id=data["id"], fields=data.get("fields", {}))
 
-    def update_record(self, table_id: str, record_id: str, fields: dict[str, Any]) -> AirtableRecord:
+    def update_record(
+        self, table_id: str, record_id: str, fields: dict[str, Any]
+    ) -> AirtableRecord:
         data = self._request(
             "PATCH",
             f"/v0/{self.base_id}/{table_id}/{record_id}",

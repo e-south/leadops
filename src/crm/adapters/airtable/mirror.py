@@ -38,7 +38,13 @@ TYPE_MAP = {
 }
 
 COMPATIBLE_TYPES = {
-    "singleLineText": {"singleLineText", "multilineText", "richText", "singleSelect", "multipleSelects"},
+    "singleLineText": {
+        "singleLineText",
+        "multilineText",
+        "richText",
+        "singleSelect",
+        "multipleSelects",
+    },
     "multilineText": {"multilineText", "singleLineText", "richText"},
     "number": {"number", "currency", "percent"},
     "date": {"date", "dateTime"},
@@ -177,7 +183,9 @@ def diff_schema(
                 continue
         else:
             missing_table_ids.append(table_key)
-            table_meta = _discover_table_by_name(tables_by_name, expectation.display_name, table_key)
+            table_meta = _discover_table_by_name(
+                tables_by_name, expectation.display_name, table_key
+            )
             if table_meta is not None:
                 discovered_table_ids[table_key] = table_meta["id"]
 
@@ -186,9 +194,7 @@ def diff_schema(
 
         existing_fields = {field["name"]: field for field in table_meta.get("fields", [])}
         missing = [
-            field_name
-            for field_name in expectation.fields
-            if field_name not in existing_fields
+            field_name for field_name in expectation.fields if field_name not in existing_fields
         ]
         if missing:
             missing_fields[table_key] = missing
@@ -257,7 +263,9 @@ def bootstrap_schema(
                 actions.append(f"ERROR: Missing Airtable table for {table_key} ({table_id}).")
                 continue
         else:
-            table_meta = _discover_table_by_name(tables_by_name, expectation.display_name, table_key)
+            table_meta = _discover_table_by_name(
+                tables_by_name, expectation.display_name, table_key
+            )
             if table_meta is None:
                 actions.append(f"CREATE TABLE: {expectation.display_name} ({table_key})")
                 if apply:
@@ -283,7 +291,9 @@ def bootstrap_schema(
                 continue
             if spec.field_type == "lastModifiedTime":
                 continue
-            actions.append(f"ADD FIELD: {expectation.display_name} -> {field_name} ({spec.field_type})")
+            actions.append(
+                f"ADD FIELD: {expectation.display_name} -> {field_name} ({spec.field_type})"
+            )
             if apply:
                 client.create_field(table_id, field_name, spec.field_type, spec.options)
 
@@ -498,7 +508,9 @@ def _missing_modified_watch_fields(
     record_fields = options.get("recordFields")
     if not isinstance(record_fields, list) or not record_fields:
         return expected_field_names
-    ids_by_name = {field["name"]: field["id"] for field in existing_fields.values() if "id" in field}
+    ids_by_name = {
+        field["name"]: field["id"] for field in existing_fields.values() if "id" in field
+    }
     missing = []
     for field_name in expected_field_names:
         field_id = ids_by_name.get(field_name)

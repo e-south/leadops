@@ -14,7 +14,6 @@ from crm.store.sqlite import SqliteSession, SqliteStore
 MODIFIED_FIELD = "AirtableModifiedAt"
 
 
-
 @dataclass
 class PullSummary:
     scanned: int
@@ -134,10 +133,24 @@ def pull_records(
 
                 if apply:
                     if decision.action == "create":
-                        _insert_local(session, table_name, external_id_field, fields_map, remote_fields, schema_fields)
+                        _insert_local(
+                            session,
+                            table_name,
+                            external_id_field,
+                            fields_map,
+                            remote_fields,
+                            schema_fields,
+                        )
                         summary.created += 1
                     elif decision.action == "apply":
-                        _update_local(session, table_name, external_id_field, fields_map, remote_fields, schema_fields)
+                        _update_local(
+                            session,
+                            table_name,
+                            external_id_field,
+                            fields_map,
+                            remote_fields,
+                            schema_fields,
+                        )
                         summary.applied += 1
                     remote_version = remote_fields.get("MirrorVersion")
                     if remote_version is not None:

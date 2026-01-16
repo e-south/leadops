@@ -13,7 +13,9 @@ class FakeClient:
         self.calls = []
 
     def list_records(self, table_id, fields=None, filter_formula=None):
-        self.calls.append({"table_id": table_id, "fields": fields, "filter_formula": filter_formula})
+        self.calls.append(
+            {"table_id": table_id, "fields": fields, "filter_formula": filter_formula}
+        )
         return []
 
 

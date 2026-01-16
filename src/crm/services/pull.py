@@ -34,7 +34,9 @@ def diff_fields(
     return changed
 
 
-def has_local_changes(local_row: dict[str, Any] | None, mirror_state: dict[str, Any] | None) -> bool:
+def has_local_changes(
+    local_row: dict[str, Any] | None, mirror_state: dict[str, Any] | None
+) -> bool:
     if local_row is None:
         return False
     if mirror_state is None:
@@ -66,7 +68,9 @@ def decide_pull_action(
     if remote_changed is False and local_changed:
         return PullDecision(action="skip", changed_fields=changed_fields, reason="local_changes")
     if local_changed and remote_changed in {True, None}:
-        return PullDecision(action="conflict", changed_fields=changed_fields, reason="local_changes")
+        return PullDecision(
+            action="conflict", changed_fields=changed_fields, reason="local_changes"
+        )
     return PullDecision(action="apply", changed_fields=changed_fields)
 
 
@@ -141,7 +145,9 @@ def has_remote_changes(
     remote_dt = _parse_datetime(remote_modified_at)
     if remote_dt is None:
         return None
-    mirror_updated_at = _parse_datetime(mirror_state.get("mirror_updated_at")) if mirror_state else None
+    mirror_updated_at = (
+        _parse_datetime(mirror_state.get("mirror_updated_at")) if mirror_state else None
+    )
     if mirror_updated_at is None:
         return True
     return remote_dt > mirror_updated_at

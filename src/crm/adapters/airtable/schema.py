@@ -63,8 +63,7 @@ def doctor(
 
     if diff.missing_modified_time:
         messages.append(
-            "Missing AirtableModifiedAt fields: "
-            + ", ".join(sorted(diff.missing_modified_time))
+            "Missing AirtableModifiedAt fields: " + ", ".join(sorted(diff.missing_modified_time))
         )
         if exit_code == 0:
             exit_code = 1
@@ -128,7 +127,9 @@ def configure_modified_time_fields(
         modified_field = fields_by_name.get(MODIFIED_TIME_FIELD)
         if not modified_field:
             continue
-        missing_watch = _missing_watch_fields(fields_by_name, expectation.human_fields, modified_field)
+        missing_watch = _missing_watch_fields(
+            fields_by_name, expectation.human_fields, modified_field
+        )
         if missing_watch:
             actions.append(
                 f"CONFIGURE FIELD: {expectation.display_name} -> {MODIFIED_TIME_FIELD} watches "
@@ -163,7 +164,9 @@ def modified_time_field_name() -> str:
     return MODIFIED_TIME_FIELD
 
 
-def _watch_field_ids(fields_by_name: dict[str, dict[str, Any]], field_names: list[str]) -> list[str]:
+def _watch_field_ids(
+    fields_by_name: dict[str, dict[str, Any]], field_names: list[str]
+) -> list[str]:
     ids = []
     for name in field_names:
         field = fields_by_name.get(name)

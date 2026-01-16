@@ -90,7 +90,9 @@ def doctor_airtable(
             ) from exc
         raise MirrorServiceError(str(exc)) from exc
 
-    return MirrorDoctorResult(exit_code=result.exit_code, messages=result.messages, diff=result.diff)
+    return MirrorDoctorResult(
+        exit_code=result.exit_code, messages=result.messages, diff=result.diff
+    )
 
 
 def bootstrap_airtable(

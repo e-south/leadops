@@ -71,9 +71,7 @@ def _create_table(conn, table_name: str, table_def: dict[str, Any]) -> None:
         ref = spec.get("ref") if isinstance(spec, dict) else None
         if ref:
             ref_table, ref_field = ref.split(".")
-            foreign_keys.append(
-                f"FOREIGN KEY ({field_name}) REFERENCES {ref_table}({ref_field})"
-            )
+            foreign_keys.append(f"FOREIGN KEY ({field_name}) REFERENCES {ref_table}({ref_field})")
 
     if isinstance(primary_key, list):
         columns.append(f"PRIMARY KEY ({', '.join(primary_key)})")

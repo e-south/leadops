@@ -69,7 +69,9 @@ def pull(
     except AirtableError as exc:
         status = exc.status_code or 0
         if status in {401, 403}:
-            raise PullServiceError("Airtable auth/permission error; check PAT scopes and base access.") from exc
+            raise PullServiceError(
+                "Airtable auth/permission error; check PAT scopes and base access."
+            ) from exc
         raise PullServiceError(str(exc)) from exc
     except PullError as exc:
         raise PullServiceError(str(exc)) from exc
