@@ -1,41 +1,50 @@
-# Leadops
+## leadops
 
-Local-first lead operations with a SQLite source of truth and an Airtable mirror. The domain logic stays decoupled from vendors so you can evolve workflows without rewrites.
+[![CI](https://github.com/e-south/leadops/actions/workflows/ci.yml/badge.svg)](https://github.com/e-south/leadops/actions/workflows/ci.yml)
 
-## What this gives you
-- A small CLI (`crm`) to add leads, log touches, and pull your next actions
-- A schema-as-code workflow (YAML -> SQLite) for repeatable setups
-- A mirror adapter for Airtable so you can share dashboards without making Airtable the system of record
+Local-first lead operations with a SQLite source of truth and an optional Airtable mirror. Domain logic stays decoupled from vendors so workflows remain portable and easy to change.
 
-## Quickstart
+---
 
-### 1) Install dependencies (pixi)
+### Highlights
+- CLI-first workflows for sponsor and attendee pipelines
+- Schema-as-code (YAML) driving SQLite structure
+- Airtable as a shareable mirror, not the system of record
+- Mirror tooling: bootstrap, doctor, and safe pull with conflict detection
+
+
+---
+
+### Sync posture
+- A) Local-only: use SQLite only.
+- B) Push-only mirror: `crm sync push` (Airtable for sharing views).
+- C) Safe pull: `crm sync pull --dry-run/--apply` with conflict detection.
+
+---
+
+### Quickstart
+
+#### 1) Install dependencies (pixi)
 
 ```bash
 pixi install
 ```
 
-### 2) Set your Airtable PAT (optional for sync)
-
-```bash
-export AIRTABLE_API_KEY="your_pat_here"
-```
-
-### 3) Initialize and create a workspace
+#### 2) Initialize and create a workspace
 
 ```bash
 pixi run crm init
-pixi run crm workspace add synbiogrs27 --base appXXXXXXXXXXXXXX
-pixi run crm workspace use synbiogrs27
+pixi run crm workspace add demo --base appXXXXXXXXXXXXXX
+pixi run crm workspace use demo
 ```
 
-### 4) Apply schema locally
+#### 3) Apply schema locally
 
 ```bash
 pixi run crm schema apply
 ```
 
-### 5) Add a lead and view next actions
+#### 4) Add a lead and view next actions
 
 ```bash
 pixi run crm lead add sponsor \
@@ -46,26 +55,38 @@ pixi run crm lead add sponsor \
   --value 15000 \
   --tier gold \
   --next "Send sponsor deck" \
-  --due 2026-01-20
+  --due 2026-02-05
 
 pixi run crm lead next
 ```
 
-### 6) Sync to Airtable (push-only)
+#### 5) (Optional) Bootstrap Airtable mirror
 
 ```bash
+export AIRTABLE_API_KEY="patXXXXXXXX"
+pixi run crm mirror bootstrap airtable --dry-run
+pixi run crm mirror bootstrap airtable --apply --write-workspace-ids
 pixi run crm sync push
 ```
 
-## Docs
-- `docs/architecture.md` — domain boundaries and adapter design
-- `docs/schema.md` — schema-as-code format and conventions
-- `docs/workspaces.md` — workspace config and selection
-- `docs/cli.md` — CLI reference
-- `docs/sync.md` — mirror behavior and Airtable notes
-- `docs/internals/phases.md` — phase checklist and roadmap
+#### 6) (Optional) Pull Airtable edits back
 
-## Notes
-- `crm` is available via `pixi run crm ...` or `uv run crm ...`.
-- Airtable is a mirror only; the local SQLite database is canonical.
-- Never store secrets in files; use environment variables.
+```bash
+pixi run crm sync pull --dry-run
+pixi run crm sync pull --apply
+```
+
+### Documentation
+- [Docs index](docs/index.md)
+- [Architecture](docs/concepts/architecture.md)
+- [Demo: SynbioGRS27 Walkthrough](docs/guides/demo.md)
+- [Workspaces](docs/guides/workspaces.md)
+- [Sync Model](docs/guides/sync.md)
+- [Airtable UI Tips](docs/guides/airtable-ui.md)
+- [CLI Reference](docs/reference/cli.md)
+- [Schema as Code](docs/reference/schema.md)
+
+
+---
+
+@e-south

@@ -1,14 +1,93 @@
+minimum_pre_commit_version: "3.7.0"
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v6.0.0
     hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=10240"]
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: ["--fix=auto"]
       - id: check-yaml
       - id: check-toml
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.9
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: local
     hooks:
-      - id: ruff
-        args: ["--fix"]
+      - id: uv-lock
+        name: uv-lock (check)
+        entry: uv lock --check
+        language: system
+        files: ^(uv\.lock|pyproject\.toml|uv\.toml)$
+        pass_filenames: false
+
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.9.1
+    hooks:
+      - id: check-github-workflows
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args:
+          - "--baseline"
+          - ".secrets.baseline"
+          - "--exclude-files"
+          - >-
+            (?x)^(
+              \.secrets\.baseline$|
+              \.env$|
+              \.env\..*|
+              \.envrc$|
+              \.venv/|
+              \.pixi/|
+              \.cruncher/|
+              \.tmp/|
+              dist/|
+              build/|
+              .*\.egg-info/|
+              src/dnadesign/archived/|
+              src/dnadesign/prototypes/|
+              src/dnadesign/usr/archived/|
+              src/dnadesign/usr/datasets/|
+              src/dnadesign/opal/campaigns/.*/outputs/|
+              src/dnadesign/cruncher/workspaces/.*/\.cruncher/|
+              src/dnadesign/cruncher/workspaces/.*/runs/|
+              src/dnadesign/cruncher/workspaces/.*/results/|
+              src/dnadesign/cruncher/workspaces/.*/outputs/
+            )
+        exclude: >-
+          (?x)^(
+            \.secrets\.baseline$|
+            \.env$|
+            \.env\..*|
+            \.envrc$|
+            \.venv/|
+            \.pixi/|
+            \.cruncher/|
+            \.tmp/|
+            dist/|
+            build/|
+            .*\.egg-info/|
+            src/dnadesign/archived/|
+            src/dnadesign/prototypes/|
+            src/dnadesign/usr/archived/|
+            src/dnadesign/usr/datasets/|
+            src/dnadesign/opal/campaigns/.*/outputs/|
+            src/dnadesign/cruncher/workspaces/.*/\.cruncher/|
+            src/dnadesign/cruncher/workspaces/.*/runs/|
+            src/dnadesign/cruncher/workspaces/.*/results/|
+            src/dnadesign/cruncher/workspaces/.*/outputs/
+          )
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.10
+    hooks:
+      - id: ruff-check
+        args: [--fix]
       - id: ruff-format

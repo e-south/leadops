@@ -7,9 +7,17 @@ __pycache__/
 *.db
 .env
 .env.*
+.envrc
+workspaces/*
+!workspaces/demo/
+!workspaces/demo/**
 workspaces/*/.env
 workspaces/**/local.sqlite
 workspaces/**/local.sqlite-*
+workspaces/.current
+workspaces/**/.sync_state.json
+workspaces/**/events.ndjson
+workspaces/**/*.bak.*
 *.egg-info/
 dist/
 build/

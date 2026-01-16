@@ -1,7 +1,7 @@
 from datetime import date
 from pathlib import Path
 
-from crm.services import leads
+from crm.services import leads, touch
 from crm.store.sqlite import SqliteStore
 
 
@@ -13,30 +13,12 @@ def _store(tmp_path: Path) -> SqliteStore:
     return store
 
 
-def test_add_sponsor_lead(tmp_path: Path) -> None:
+def test_touch_does_not_clear_next_action(tmp_path: Path) -> None:
     store = _store(tmp_path)
     opp_id = leads.add_sponsor_lead(
         store,
         org_name="Acme Bio",
         domain="acmebio.com",
-        contact="Jane Doe <jane@acmebio.com>",
-        stage="contacted",
-        value=15000,
-        tier="gold",
-        next_action="Send deck",
-        due=date(2026, 1, 20),
-        notes=None,
-    )
-    row = store.fetch_one("SELECT opp_id FROM sponsor_opps WHERE opp_id = ?", (opp_id,))
-    assert row is not None
-
-
-def test_next_actions(tmp_path: Path) -> None:
-    store = _store(tmp_path)
-    leads.add_sponsor_lead(
-        store,
-        org_name="Acme Bio",
-        domain=None,
         contact=None,
         stage="contacted",
         value=None,
@@ -45,5 +27,19 @@ def test_next_actions(tmp_path: Path) -> None:
         due=date(2026, 1, 20),
         notes=None,
     )
-    actions = leads.next_actions(store, limit=5)
-    assert actions
+    touch.log_touch(
+        store,
+        record_id=opp_id,
+        channel="email",
+        direction="outbound",
+        subject="Sponsor intro",
+        note=None,
+        next_action=None,
+        due=None,
+    )
+    row = store.fetch_one(
+        "SELECT next_action, next_action_due FROM sponsor_opps WHERE opp_id = ?",
+        (opp_id,),
+    )
+    assert row["next_action"] == "Send deck"
+    assert row["next_action_due"] == "2026-01-20"

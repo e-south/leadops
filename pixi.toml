@@ -21,11 +21,15 @@ pytest = ">=7.4.4"
 ruff = ">=0.6.9"
 pre-commit = ">=3.7.1"
 
+[feature.dev.pypi-dependencies]
+build = ">=1.2.2"
+
 [environments]
 default = { features = ["dev"] }
 
 [tasks]
 crm = "python -m crm.cli"
+build = "python -m build"
 lint = "ruff check ."
 format = "ruff format ."
 test = "pytest"

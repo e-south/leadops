@@ -1,0 +1,14 @@
+workspace: demo
+store:
+  sqlite_path: local.sqlite
+mirror:
+  provider: airtable
+  base_id: appDEMO0000000000
+  tables:
+    organizations: ''
+    people: ''
+    sponsor_opps: ''
+    campaigns: ''
+    campaign_members: ''
+    touches: ''
+    tasks: ''
